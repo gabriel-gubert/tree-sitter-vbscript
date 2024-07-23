@@ -7,6 +7,25 @@ module.exports = grammar({
     $.comment
   ],
 
+  precedences: $ => [
+    [
+      "call",
+      "member",
+      "multiplicative",
+      "additive",
+      "boolean",
+      $.unary_expression,
+      $.binary_expression,
+      $._expression
+    ],
+    [
+      "assign",
+      "branch",
+      "invocation",
+      $._expression
+    ],
+  ],
+
   rules: {
     source_file: $ => repeat(
       seq($._statement, $._whitespace),
@@ -20,16 +39,16 @@ module.exports = grammar({
     ),
 
     _inline_statement: $ => choice(
-      prec(3,$.variable_assignment),
-      prec(2,$.if_statement),
-      prec(2,$.for_statement),
-      prec(2,$.while_statement),
-      prec(2,$.do_statement),
-      prec(2,$.variable_declaration),
+      $.variable_assignment,
+      $.if_statement,
+      $.for_statement,
+      $.while_statement,
+      $.do_statement,
+      $.variable_declaration,
       $.invocation_statement,
     ),
 
-    variable_assignment: $ => prec.left(seq(
+    variable_assignment: $ => prec.left('assign',seq(
       $.identifier,
       $._equal,
       $._expression
@@ -42,14 +61,14 @@ module.exports = grammar({
       $._whitespace
     ),
 
-    invocation_statement: $ => prec.left(seq(
-      $._right_of_dot_expression,
+    invocation_statement: $ => prec.left('invocation',seq(
+      $._expression,
       optional($.argument_list)
     )),
 
     comment: $ => token(seq("'", /.*/)),
 
-    if_statement: $ => seq(
+    if_statement: $ => prec('branch',seq(
       'If',
       $._expression,
       'Then',
@@ -60,9 +79,9 @@ module.exports = grammar({
         $._inline_statement_block
       )),
       'End If'
-    ),
+    )),
 
-    for_statement: $ => seq(
+    for_statement: $ => prec('branch',seq(
       'For',
       $.identifier,
       $._equal,
@@ -77,23 +96,23 @@ module.exports = grammar({
       $._inline_statement_block,
       'Next',
       $.identifier
-    ),
+    )),
 
-    while_statement: $ => seq(
+    while_statement: $ => prec('branch',seq(
       'While',
       $._expression,
       $._whitespace,
       $._inline_statement_block,
       'Wend'
-    ),
+    )),
 
-    do_statement: $ => seq(
+    do_statement: $ => prec('branch',seq(
       'Do',
       $._whitespace,
       $._inline_statement_block,
       'Loop Until',
       $._expression
-    ),
+    )),
 
     subroutine: $ => seq(
       'Sub',
@@ -206,57 +225,52 @@ module.exports = grammar({
     ),
 
     _expression: $ => choice(
-      prec(2, $.attribute_expression),
-      prec(1,seq('(',$._expression, ')')),
-      prec(1,$.literal),
-      prec(1,$.binary_expression),
-      prec(1,$.unary_expression),
-      prec(1,$.function_call),
-      prec(1,$.identifier)
+      $.member_expression,
+      $.function_call,
+      seq('(',$._expression, ')'),
+      $.literal,
+      $.binary_expression,
+      $.unary_expression,
+      $.identifier
     ),
 
-    _right_of_dot_expression: $ => choice(
-      prec(3,$._attribute_expression_rest),
-      prec(2,$.function_call),
-      prec(1,$.identifier)
-    ),
+    member_expression: $ => prec('member',seq(
+      $._expression,
+      '.',
+      choice(
+        $.function_call,
+        $.identifier
+      )
+    )),
 
-    attribute_expression: $ => seq(
-      $.identifier,
-      repeat1($._attribute_expression_rest)
-    ),
+    binary_expression: $ => prec.left(choice(
+      prec('additive',seq($._expression, '+', $._expression)),
+      prec('additive',seq($._expression, '-', $._expression)),
+      prec('multiplicative',seq($._expression, '*', $._expression)),
+      prec('multiplicative',seq($._expression, '/', $._expression)),
+      prec('boolean',seq($._expression, '&', $._expression)),
+      prec('boolean',seq($._expression, 'and', $._expression)),
+      prec('boolean',seq($._expression, 'or', $._expression)),
+      prec('boolean',seq($._expression, $._equal, $._expression)),
+      prec('boolean',seq($._expression, '<>', $._expression)),
+      prec('boolean',seq($._expression, '<', $._expression)),
+      prec('boolean',seq($._expression, '>', $._expression)),
+      prec('boolean',seq($._expression, '<=', $._expression)),
+      prec('boolean',seq($._expression, '>=', $._expression))
+    )),
 
-    _attribute_expression_rest: $ =>
-      prec.left(seq(token.immediate('.'), $._right_of_dot_expression)),
+    unary_expression: $ => prec.right(choice(
+      seq('-', $._expression),
+      seq('Not', $._expression)
+    )),
 
-    binary_expression: $ => choice(
-      prec.left(2,seq($._expression, '+', $._expression)),
-      prec.left(2,seq($._expression, '-', $._expression)),
-      prec.left(3,seq($._expression, '*', $._expression)),
-      prec.left(3,seq($._expression, '/', $._expression)),
-      prec.left(1,seq($._expression, '&', $._expression)),
-      prec.left(1,seq($._expression, 'and', $._expression)),
-      prec.left(1,seq($._expression, 'or', $._expression)),
-      prec.left(1,seq($._expression, $._equal, $._expression)),
-      prec.left(1,seq($._expression, '<>', $._expression)),
-      prec.left(1,seq($._expression, '<', $._expression)),
-      prec.left(1,seq($._expression, '>', $._expression)),
-      prec.left(1,seq($._expression, '<=', $._expression)),
-      prec.left(1,seq($._expression, '>=', $._expression))
-    ),
-
-    unary_expression: $ => choice(
-      prec.right(seq('-', $._expression)),
-      prec.right(seq('Not', $._expression))
-    ),
-
-    function_call: $ => seq(
+    function_call: $ => prec('call',seq(
       optional('Call'),
       $.identifier,
       '(',
       optional($.argument_list),
       ')'
-    ),
+    )),
 
     argument_list: $ => seq(
       $.argument,
@@ -295,12 +309,7 @@ module.exports = grammar({
 
     _whitespace: $ => repeat1(/[\n\r]/),
 
-    _horizontal_whitespace: $=> /[ \t]+/,
-
-    _terminator: $ => prec(1,choice(
-      '\n',
-      ':'
-    ))
+    _horizontal_whitespace: $=> /[ \t]+/
   }
 });
 
