@@ -29,6 +29,14 @@ module.exports = grammar({
       $.array_element,
       $.argument,
       $.identifier
+    ],
+    [
+      $.array_identifier,
+      $.new_identifier
+    ],
+    [
+        $._variable_declaration_assignment,
+        $.variable_list
     ]
   ],
 
@@ -50,7 +58,9 @@ module.exports = grammar({
       $.for_statement,
       $.while_statement,
       $.do_statement,
+      $.exit_statement,
       $.variable_declaration,
+      $.redim,
       $.invocation_statement,
     ),
 
@@ -77,6 +87,17 @@ module.exports = grammar({
 
     comment: $ => token(seq("'", /.*/)),
 
+    exit_statement: $ => seq(
+      'Exit',
+      choice(
+        'For',
+        'Function',
+        'Sub',
+        'Do',
+        'While'
+      )
+    ),
+
     if_statement: $ => prec('branch',seq(
       'If',
       $._expression,
@@ -85,6 +106,7 @@ module.exports = grammar({
       $._inline_statement_block,
       optional(seq(
         'Else',
+        $._whitespace,
         $._inline_statement_block
       )),
       'End If'
@@ -139,6 +161,7 @@ module.exports = grammar({
     ),
 
     function: $ => seq(
+      optional('Private'),
       'Function',
       $.new_identifier,
       '(',
@@ -158,11 +181,33 @@ module.exports = grammar({
       )
     ),
 
+    redim: $ => seq(
+      'ReDim',
+      optional('Preserve'),
+      $._expression
+    ),
+
     _variable_declaration_assignment: $ => seq(
-      $.new_identifier,
+      $.variable_declaration_identifier,
       optional($.type_definition),
       $._equal,
       $._expression
+    ),
+
+    variable_declaration_identifier: $ => choice(
+      $.array_identifier,
+      $.new_identifier
+    ),
+
+    array_identifier: $ => seq(
+      $.new_identifier,
+      '(',
+      optional(seq(
+        $.number,
+        'To',
+        $.number
+      )),
+      ')'
     ),
 
     type_definition: $=> seq(
@@ -171,10 +216,10 @@ module.exports = grammar({
     ),
 
     variable_list: $ => seq(
-      $.new_identifier,
+      $.variable_declaration_identifier,
       repeat(seq(
         ',',
-        $.new_identifier
+        $.variable_declaration_identifier
       )),
       optional($.type_definition)
     ),
@@ -205,10 +250,7 @@ module.exports = grammar({
     parameter: $ => seq(
       optional($.modifier),
       $.new_identifier,
-      optional(seq(
-        'As',
-        $.type
-      ))
+      optional($.type_definition)
     ),
 
     modifier: $ => choice(
@@ -293,9 +335,9 @@ module.exports = grammar({
       prec('multiplicative',seq($._expression, '/', $._expression)),
       prec('multiplicative',seq($._expression, 'Mod', $._expression)),
       prec('boolean',seq($._expression, '&', $._expression)),
-      prec('boolean',seq($._expression, 'and', $._expression)),
-      prec('boolean',seq($._expression, 'or', $._expression)),
-      prec('boolean',seq($._expression, 'Xor', $._expression)),
+      prec('boolean',seq($._expression, /[Aa]nd/, $._expression)),
+      prec('boolean',seq($._expression, /[Oo]r/, $._expression)),
+      prec('boolean',seq($._expression, /[Xx]or/, $._expression)),
       prec('boolean',seq($._expression, $._equal, $._expression)),
       prec('boolean',seq($._expression, '<>', $._expression)),
       prec('boolean',seq($._expression, '<', $._expression)),

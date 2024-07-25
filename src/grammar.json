@@ -63,7 +63,15 @@
         },
         {
           "type": "SYMBOL",
+          "name": "exit_statement"
+        },
+        {
+          "type": "SYMBOL",
           "name": "variable_declaration"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "redim"
         },
         {
           "type": "SYMBOL",
@@ -167,6 +175,40 @@
         ]
       }
     },
+    "exit_statement": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "Exit"
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "STRING",
+              "value": "For"
+            },
+            {
+              "type": "STRING",
+              "value": "Function"
+            },
+            {
+              "type": "STRING",
+              "value": "Sub"
+            },
+            {
+              "type": "STRING",
+              "value": "Do"
+            },
+            {
+              "type": "STRING",
+              "value": "While"
+            }
+          ]
+        }
+      ]
+    },
     "if_statement": {
       "type": "PREC",
       "value": "branch",
@@ -202,6 +244,10 @@
                   {
                     "type": "STRING",
                     "value": "Else"
+                  },
+                  {
+                    "type": "SYMBOL",
+                    "name": "_whitespace"
                   },
                   {
                     "type": "SYMBOL",
@@ -411,6 +457,18 @@
       "type": "SEQ",
       "members": [
         {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "STRING",
+              "value": "Private"
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
           "type": "STRING",
           "value": "Function"
         },
@@ -486,12 +544,37 @@
         }
       ]
     },
+    "redim": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "ReDim"
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "STRING",
+              "value": "Preserve"
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
+          "type": "SYMBOL",
+          "name": "_expression"
+        }
+      ]
+    },
     "_variable_declaration_assignment": {
       "type": "SEQ",
       "members": [
         {
           "type": "SYMBOL",
-          "name": "new_identifier"
+          "name": "variable_declaration_identifier"
         },
         {
           "type": "CHOICE",
@@ -515,6 +598,61 @@
         }
       ]
     },
+    "variable_declaration_identifier": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "array_identifier"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "new_identifier"
+        }
+      ]
+    },
+    "array_identifier": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "new_identifier"
+        },
+        {
+          "type": "STRING",
+          "value": "("
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SEQ",
+              "members": [
+                {
+                  "type": "SYMBOL",
+                  "name": "number"
+                },
+                {
+                  "type": "STRING",
+                  "value": "To"
+                },
+                {
+                  "type": "SYMBOL",
+                  "name": "number"
+                }
+              ]
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
+          "type": "STRING",
+          "value": ")"
+        }
+      ]
+    },
     "type_definition": {
       "type": "SEQ",
       "members": [
@@ -533,7 +671,7 @@
       "members": [
         {
           "type": "SYMBOL",
-          "name": "new_identifier"
+          "name": "variable_declaration_identifier"
         },
         {
           "type": "REPEAT",
@@ -546,7 +684,7 @@
               },
               {
                 "type": "SYMBOL",
-                "name": "new_identifier"
+                "name": "variable_declaration_identifier"
               }
             ]
           }
@@ -691,17 +829,8 @@
           "type": "CHOICE",
           "members": [
             {
-              "type": "SEQ",
-              "members": [
-                {
-                  "type": "STRING",
-                  "value": "As"
-                },
-                {
-                  "type": "SYMBOL",
-                  "name": "type"
-                }
-              ]
+              "type": "SYMBOL",
+              "name": "type_definition"
             },
             {
               "type": "BLANK"
@@ -1118,8 +1247,8 @@
                   "name": "_expression"
                 },
                 {
-                  "type": "STRING",
-                  "value": "and"
+                  "type": "PATTERN",
+                  "value": "[Aa]nd"
                 },
                 {
                   "type": "SYMBOL",
@@ -1139,8 +1268,8 @@
                   "name": "_expression"
                 },
                 {
-                  "type": "STRING",
-                  "value": "or"
+                  "type": "PATTERN",
+                  "value": "[Oo]r"
                 },
                 {
                   "type": "SYMBOL",
@@ -1160,8 +1289,8 @@
                   "name": "_expression"
                 },
                 {
-                  "type": "STRING",
-                  "value": "Xor"
+                  "type": "PATTERN",
+                  "value": "[Xx]or"
                 },
                 {
                   "type": "SYMBOL",
@@ -1623,6 +1752,26 @@
       {
         "type": "SYMBOL",
         "name": "identifier"
+      }
+    ],
+    [
+      {
+        "type": "SYMBOL",
+        "name": "array_identifier"
+      },
+      {
+        "type": "SYMBOL",
+        "name": "new_identifier"
+      }
+    ],
+    [
+      {
+        "type": "SYMBOL",
+        "name": "_variable_declaration_assignment"
+      },
+      {
+        "type": "SYMBOL",
+        "name": "variable_list"
       }
     ]
   ],
