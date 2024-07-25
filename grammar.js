@@ -110,13 +110,17 @@ module.exports = grammar({
       'Do',
       $._whitespace,
       $._inline_statement_block,
-      'Loop Until',
+      'Loop',
+      choice(
+        'While',
+        'Until'
+      ),
       $._expression
     )),
 
     subroutine: $ => seq(
       'Sub',
-      $.identifier,
+      $.new_identifier,
       '(',
       optional($.parameter_list),
       ')',
@@ -127,10 +131,11 @@ module.exports = grammar({
 
     function: $ => seq(
       'Function',
-      $.identifier,
+      $.new_identifier,
       '(',
       optional($.parameter_list),
       ')',
+      $._whitespace,
       $._inline_statement_block,
       'End Function'
     ),
@@ -144,7 +149,7 @@ module.exports = grammar({
     ),
 
     _variable_declaration_assignment: $ => seq(
-      $.identifier,
+      $.new_identifier,
       optional(seq(
         'As',
         $.type
@@ -159,10 +164,10 @@ module.exports = grammar({
     ),
 
     variable_list: $ => seq(
-      $.identifier,
+      $.new_identifier,
       repeat(seq(
         ',',
-        $.identifier
+        $.new_identifier
       )),
       optional($.type_definition)
     ),
@@ -172,10 +177,10 @@ module.exports = grammar({
       'Declare',
       'PtrSafe',
       'Function',
-      $.identifier,
+      $.new_identifier,
       'Lib',
-      $.string,
-      optional(seq('Alias', $.string)),
+      $.string_literal,
+      optional(seq('Alias', $.string_literal)),
       '(',
       optional($.parameter_list),
       ')',
@@ -192,9 +197,11 @@ module.exports = grammar({
 
     parameter: $ => seq(
       optional($.modifier),
-      $.identifier,
-      'As',
-      $.type
+      $.new_identifier,
+      optional(seq(
+        'As',
+        $.type
+      ))
     ),
 
     modifier: $ => choice(
@@ -293,15 +300,17 @@ module.exports = grammar({
 
     literal: $ => choice(
       $.number,
-      $.string,
+      $.string_literal,
       $.boolean
     ),
 
     number: $ => /\d+/,
 
-    string: $ => seq('"', /[^"]*/, '"'),
+    string_literal: $ => seq('"', /[^"]*/, '"'),
 
     boolean: $ => choice('True', 'False'),
+
+    new_identifier: $ => $.identifier,
 
     identifier: $ => /[a-zA-Z_]\w*/,
 

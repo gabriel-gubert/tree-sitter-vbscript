@@ -331,7 +331,20 @@
           },
           {
             "type": "STRING",
-            "value": "Loop Until"
+            "value": "Loop"
+          },
+          {
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "STRING",
+                "value": "While"
+              },
+              {
+                "type": "STRING",
+                "value": "Until"
+              }
+            ]
           },
           {
             "type": "SYMBOL",
@@ -349,7 +362,7 @@
         },
         {
           "type": "SYMBOL",
-          "name": "identifier"
+          "name": "new_identifier"
         },
         {
           "type": "STRING",
@@ -394,7 +407,7 @@
         },
         {
           "type": "SYMBOL",
-          "name": "identifier"
+          "name": "new_identifier"
         },
         {
           "type": "STRING",
@@ -415,6 +428,10 @@
         {
           "type": "STRING",
           "value": ")"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "_whitespace"
         },
         {
           "type": "SYMBOL",
@@ -453,7 +470,7 @@
       "members": [
         {
           "type": "SYMBOL",
-          "name": "identifier"
+          "name": "new_identifier"
         },
         {
           "type": "CHOICE",
@@ -504,7 +521,7 @@
       "members": [
         {
           "type": "SYMBOL",
-          "name": "identifier"
+          "name": "new_identifier"
         },
         {
           "type": "REPEAT",
@@ -517,7 +534,7 @@
               },
               {
                 "type": "SYMBOL",
-                "name": "identifier"
+                "name": "new_identifier"
               }
             ]
           }
@@ -557,7 +574,7 @@
         },
         {
           "type": "SYMBOL",
-          "name": "identifier"
+          "name": "new_identifier"
         },
         {
           "type": "STRING",
@@ -565,7 +582,7 @@
         },
         {
           "type": "SYMBOL",
-          "name": "string"
+          "name": "string_literal"
         },
         {
           "type": "CHOICE",
@@ -579,7 +596,7 @@
                 },
                 {
                   "type": "SYMBOL",
-                  "name": "string"
+                  "name": "string_literal"
                 }
               ]
             },
@@ -656,15 +673,28 @@
         },
         {
           "type": "SYMBOL",
-          "name": "identifier"
+          "name": "new_identifier"
         },
         {
-          "type": "STRING",
-          "value": "As"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "type"
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SEQ",
+              "members": [
+                {
+                  "type": "STRING",
+                  "value": "As"
+                },
+                {
+                  "type": "SYMBOL",
+                  "name": "type"
+                }
+              ]
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
         }
       ]
     },
@@ -1264,7 +1294,7 @@
         },
         {
           "type": "SYMBOL",
-          "name": "string"
+          "name": "string_literal"
         },
         {
           "type": "SYMBOL",
@@ -1276,7 +1306,7 @@
       "type": "PATTERN",
       "value": "\\d+"
     },
-    "string": {
+    "string_literal": {
       "type": "SEQ",
       "members": [
         {
@@ -1305,6 +1335,10 @@
           "value": "False"
         }
       ]
+    },
+    "new_identifier": {
+      "type": "SYMBOL",
+      "name": "identifier"
     },
     "identifier": {
       "type": "PATTERN",
