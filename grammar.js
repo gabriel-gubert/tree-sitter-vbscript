@@ -12,6 +12,7 @@ module.exports = grammar({
       "new",
       "call",
       "member",
+      "exponential",
       "multiplicative",
       "additive",
       "boolean",
@@ -35,8 +36,7 @@ module.exports = grammar({
       $.new_identifier
     ],
     [
-        $._variable_declaration_assignment,
-        $.variable_list
+      $.variable_list
     ]
   ],
 
@@ -59,6 +59,8 @@ module.exports = grammar({
       $.while_statement,
       $.do_statement,
       $.exit_statement,
+      $.error_statement,
+      $.const_declaration,
       $.variable_declaration,
       $.redim,
       $.invocation_statement,
@@ -85,112 +87,137 @@ module.exports = grammar({
       optional($.argument_list)
     )),
 
-    comment: $ => token(seq("'", /.*/)),
+    comment: $ => token(choice(
+        seq("'", /.*/),
+        seq(/[Rr][Ee][Mm]/, /.*/)
+    )),
 
     exit_statement: $ => seq(
-      'Exit',
+      /[Ee][Xx][Ii][Tt]/,
       choice(
-        'For',
-        'Function',
-        'Sub',
-        'Do',
-        'While'
+        /[Ff][Oo][Rr]/,
+        /[Ff][Uu][Nn][Cc][Tt][Ii][Oo][Nn]/,
+        /[Ss][Uu][Bb]/,
+        /[Dd][Oo]/,
+        /[Ww][Hh][Ii][Ll][Ee]/
+      )
+    ),
+
+    error_statement: $ => seq(
+      /[Oo][Nn] [Ee][Rr][Rr][Oo][Rr]/,
+      choice(
+        /[Gg][Oo][Tt][Oo] 0/,
+        /[Rr][Ee][Ss][Uu][Mm][Ee] [Nn][Ee][Xx][Tt]/
       )
     ),
 
     if_statement: $ => prec('branch',seq(
-      'If',
+      /[Ii][Ff]/,
       $._expression,
-      'Then',
+      /[Tt][Hh][Ee][Nn]/,
       $._whitespace,
       $._inline_statement_block,
-      optional(seq(
-        'Else',
-        $._whitespace,
-        $._inline_statement_block
+      optional(choice(
+        repeat(seq(
+          /[Ee][Ll][Ss][Ee][Ii][Ff]/,
+          $._expression,
+          /[Tt][Hh][Ee][Nn]/,
+          $._whitespace,
+          $._inline_statement_block
+        )),
+        seq(
+          /[Ee][Ll][Ss][Ee]/,
+          $._whitespace,
+          $._inline_statement_block
+        ),
       )),
-      'End If'
+      /[Ee][Nn][Dd] [Ii][Ff]/
     )),
 
     for_statement: $ => prec('branch',seq(
-      'For',
+      /[Ff][Oo][Rr]/,
       $.identifier,
       $._equal,
       $._expression,
-      'To',
+      /[Tt][Oo]/,
       $._expression,
       optional(seq(
-        'Step',
+        /[Ss][Tt][Ee][Pp]/,
         $._expression
       )),
       $._whitespace,
       $._inline_statement_block,
-      'Next',
+      /[Nn][Ee][Xx][Tt]/,
       $.identifier
     )),
 
     while_statement: $ => prec('branch',seq(
-      'While',
+      /[Ww][Hh][Ii][Ll][Ee]/,
       $._expression,
       $._whitespace,
       $._inline_statement_block,
-      'Wend'
+      /[Ww][Ee][Nn][Dd]/
     )),
 
     do_statement: $ => prec('branch',seq(
-      'Do',
+      /[Dd][Oo]/,
       $._whitespace,
       $._inline_statement_block,
-      'Loop',
+      /[Ll][Oo][Oo][Pp]/,
       choice(
-        'While',
-        'Until'
+        /[Ww][Hh][Ii][Ll][Ee]/,
+        /[Uu][Nn][Tt][Ii][Ll]/
       ),
       $._expression
     )),
 
     subroutine: $ => seq(
-      'Sub',
+      /[Ss][Uu][Bb]/,
       $.new_identifier,
       '(',
       optional($.parameter_list),
       ')',
       $._whitespace,
       $._inline_statement_block,
-      'End Sub'
+      /[Ee][Nn][Dd] [Ss][Uu][Bb]/
     ),
 
     function: $ => seq(
-      optional('Private'),
-      'Function',
+      optional(/[Pp][Rr][Ii][Vv][Aa][Tt][Ee]/),
+      /[Ff][Uu][Nn][Cc][Tt][Ii][Oo][Nn]/,
       $.new_identifier,
       '(',
       optional($.parameter_list),
       ')',
-      optional($.type_definition),
       $._whitespace,
       $._inline_statement_block,
-      'End Function'
+      /[Ee][Nn][Dd] [Ff][Uu][Nn][Cc][Tt][Ii][Oo][Nn]/
     ),
 
-    variable_declaration: $ => seq(
-      'Dim',
-      choice(
-        $._variable_declaration_assignment,
-        $.variable_list
-      )
+    const_declaration: $ => seq(
+      /[Cc][Oo][Nn][Ss][Tt]/,
+      $._const_declaration_assignment,
     ),
 
-    redim: $ => seq(
-      'ReDim',
-      optional('Preserve'),
+    _const_declaration_assignment: $ => seq(
+      $.const_declaration_identifier,
+      $._equal,
       $._expression
     ),
 
-    _variable_declaration_assignment: $ => seq(
-      $.variable_declaration_identifier,
-      optional($.type_definition),
-      $._equal,
+    const_declaration_identifier: $ => choice(
+      $.array_identifier,
+      $.new_identifier
+    ),
+
+    variable_declaration: $ => seq(
+      /[Dd][Ii][Mm]/,
+      $.variable_list
+    ),
+
+    redim: $ => seq(
+      /[Rr][Ee][Dd][Ii][Mm]/,
+      optional(/[Pp][Rr][Ee][Ss][Ee][Rr][Vv][Ee]/),
       $._expression
     ),
 
@@ -204,15 +231,10 @@ module.exports = grammar({
       '(',
       optional(seq(
         $.number,
-        'To',
+        /[Tt][Oo]/,
         $.number
       )),
       ')'
-    ),
-
-    type_definition: $=> seq(
-      'As',
-      $.type
     ),
 
     variable_list: $ => seq(
@@ -220,23 +242,21 @@ module.exports = grammar({
       repeat(seq(
         ',',
         $.variable_declaration_identifier
-      )),
-      optional($.type_definition)
+      ))
     ),
 
     ptrsafe_function_declaration: $ => seq(
-      'Private',
-      'Declare',
-      'PtrSafe',
-      'Function',
+      /[Pp][Rr][Ii][Vv][Aa][Tt][Ee]/,
+      /[Dd][Ee][Cc][Ll][Aa][Rr][Ee]/,
+      /[Pp][Tt][Rr][Ss][Aa][Ff][Ee]/,
+      /[Ff][Uu][Nn][Cc][Tt][Ii][Oo][Nn]/,
       $.new_identifier,
-      'Lib',
+      /[Ll][Ii][Bb]/,
       $.string_literal,
-      optional(seq('Alias', $.string_literal)),
+      optional(seq(/[Aa][Ll][Ii][Aa][Ss]/, $.string_literal)),
       '(',
       optional($.parameter_list),
-      ')',
-      $.type_definition
+      ')'
     ),
 
     parameter_list: $ => seq(
@@ -249,15 +269,19 @@ module.exports = grammar({
 
     parameter: $ => seq(
       optional($.modifier),
-      $.new_identifier,
-      optional($.type_definition)
+      $.new_identifier
     ),
 
     modifier: $ => choice(
-      'ByVal',
-      'ByRef',
-      'Optional',
-      'ParamArray'
+      /[Bb][Yy][Vv][Aa][Ll]/,
+      /[Bb][Yy][Rr][Ee][Ff]/,
+      /[Oo][Pp][Tt][Ii][Oo][Nn][Aa][Ll]/,
+      /[Pp][Aa][Rr][Aa][Mm][Aa][Rr][Rr][Aa][Yy]/
+    ),
+
+    visibility: $ => choice(
+      /[Pp][Rr][Ii][Vv][Aa][Tt][Ee]/,
+      /[Pp][Uu][Bb][Ll][Ii][Cc]/
     ),
 
     type: $ => choice(
@@ -266,23 +290,23 @@ module.exports = grammar({
     ),
 
     type_terminal: $ => choice(
-      'Any',
-      'Boolean',
-      'Byte',
-      'Collection',
-      'Currency',
-      'Date',
-      'Decimal',
-      'Dictionary',
-      'Double',
-      'Integer',
-      'Long',
-      'LongLong',
-      'LongPtr',
-      'Object',
-      'Single',
-      'String',
-      'Variant',
+      /[Aa][Nn][Yy]/,
+      /[Bb][Oo][Oo][Ll][Ee][Aa][Nn]/,
+      /[Bb][Yy][Tt][Ee]/,
+      /[Cc][Oo][Ll][Ll][Ee][Cc][Tt][Ii][Oo][Nn]/,
+      /[Cc][Uu][Rr][Rr][Ee][Nn][Cc][Yy]/,
+      /[Dd][Aa][Tt][Ee]/,
+      /[Dd][Ee][Cc][Ii][Mm][Aa][Ll]/,
+      /[Dd][Ii][Cc][Tt][Ii][Oo][Nn][Aa][Rr][Yy]/,
+      /[Dd][Oo][Uu][Bb][Ll][Ee]/,
+      /[Ii][Nn][Tt][Ee][Gg][Ee][Rr]/,
+      /[Ll][Oo][Nn][Gg]/,
+      /[Ll][Oo][Nn][Gg][Ll][Oo][Nn][Gg]/,
+      /[Ll][Oo][Nn][Gg][Pp][Tt][Rr]/,
+      /[Oo][Bb][Jj][Ee][Cc][Tt]/,
+      /[Ss][Ii][Nn][Gg][Ll][Ee]/,
+      /[Ss][Tt][Rr][Ii][Nn][Gg]/,
+      /[Vv][Aa][Rr][Ii][Aa][Nn][Tt]/,
       $.type_member_expression,
     ),
 
@@ -303,7 +327,7 @@ module.exports = grammar({
     ),
 
     new_expression: $ => prec('new', seq(
-      'New',
+      /[Nn][Ee][Ww]/,
       choice(
         $.identifier,
         $.type_member_expression
@@ -333,11 +357,12 @@ module.exports = grammar({
       prec('additive',seq($._expression, '-', $._expression)),
       prec('multiplicative',seq($._expression, '*', $._expression)),
       prec('multiplicative',seq($._expression, '/', $._expression)),
-      prec('multiplicative',seq($._expression, 'Mod', $._expression)),
+      prec('multiplicative',seq($._expression, /[Mm][Oo][Dd]/, $._expression)),
+      prec('exponential', seq($._expression, '^', $._expression)),
       prec('boolean',seq($._expression, '&', $._expression)),
-      prec('boolean',seq($._expression, /[Aa]nd/, $._expression)),
-      prec('boolean',seq($._expression, /[Oo]r/, $._expression)),
-      prec('boolean',seq($._expression, /[Xx]or/, $._expression)),
+      prec('boolean',seq($._expression, /[Aa][Nn][Dd]/, $._expression)),
+      prec('boolean',seq($._expression, /[Oo][Rr]/, $._expression)),
+      prec('boolean',seq($._expression, /[Xx][Oo][Rr]/, $._expression)),
       prec('boolean',seq($._expression, $._equal, $._expression)),
       prec('boolean',seq($._expression, '<>', $._expression)),
       prec('boolean',seq($._expression, '<', $._expression)),
@@ -348,11 +373,11 @@ module.exports = grammar({
 
     unary_expression: $ => prec.right(choice(
       seq('-', $._expression),
-      seq('Not', $._expression)
+      seq(/[Nn][Oo][Tt]/, $._expression)
     )),
 
     function_call: $ => prec('call',seq(
-      optional('Call'),
+      optional(/[Cc][Aa][Ll][Ll]/),
       $.identifier,
       '(',
       optional($.argument_list),
@@ -395,7 +420,7 @@ module.exports = grammar({
 
     string_literal: $ => seq('"', /[^"]*/, '"'),
 
-    boolean: $ => choice('True', 'False'),
+    boolean: $ => choice(/[Tt][Rr][Uu][Ee]/, /[Ff][Aa][Ll][Ss][Ee]/),
 
     new_identifier: $ => $.identifier,
 

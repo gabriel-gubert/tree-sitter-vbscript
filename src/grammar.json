@@ -1,4 +1,5 @@
 {
+  "$schema": "https://tree-sitter.github.io/tree-sitter/assets/schemas/grammar.schema.json",
   "name": "vbscript",
   "rules": {
     "source_file": {
@@ -64,6 +65,14 @@
         {
           "type": "SYMBOL",
           "name": "exit_statement"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "error_statement"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "const_declaration"
         },
         {
           "type": "SYMBOL",
@@ -162,15 +171,33 @@
     "comment": {
       "type": "TOKEN",
       "content": {
-        "type": "SEQ",
+        "type": "CHOICE",
         "members": [
           {
-            "type": "STRING",
-            "value": "'"
+            "type": "SEQ",
+            "members": [
+              {
+                "type": "STRING",
+                "value": "'"
+              },
+              {
+                "type": "PATTERN",
+                "value": ".*"
+              }
+            ]
           },
           {
-            "type": "PATTERN",
-            "value": ".*"
+            "type": "SEQ",
+            "members": [
+              {
+                "type": "PATTERN",
+                "value": "[Rr][Ee][Mm]"
+              },
+              {
+                "type": "PATTERN",
+                "value": ".*"
+              }
+            ]
           }
         ]
       }
@@ -179,31 +206,53 @@
       "type": "SEQ",
       "members": [
         {
-          "type": "STRING",
-          "value": "Exit"
+          "type": "PATTERN",
+          "value": "[Ee][Xx][Ii][Tt]"
         },
         {
           "type": "CHOICE",
           "members": [
             {
-              "type": "STRING",
-              "value": "For"
+              "type": "PATTERN",
+              "value": "[Ff][Oo][Rr]"
             },
             {
-              "type": "STRING",
-              "value": "Function"
+              "type": "PATTERN",
+              "value": "[Ff][Uu][Nn][Cc][Tt][Ii][Oo][Nn]"
             },
             {
-              "type": "STRING",
-              "value": "Sub"
+              "type": "PATTERN",
+              "value": "[Ss][Uu][Bb]"
             },
             {
-              "type": "STRING",
-              "value": "Do"
+              "type": "PATTERN",
+              "value": "[Dd][Oo]"
             },
             {
-              "type": "STRING",
-              "value": "While"
+              "type": "PATTERN",
+              "value": "[Ww][Hh][Ii][Ll][Ee]"
+            }
+          ]
+        }
+      ]
+    },
+    "error_statement": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "PATTERN",
+          "value": "[Oo][Nn] [Ee][Rr][Rr][Oo][Rr]"
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "PATTERN",
+              "value": "[Gg][Oo][Tt][Oo] 0"
+            },
+            {
+              "type": "PATTERN",
+              "value": "[Rr][Ee][Ss][Uu][Mm][Ee] [Nn][Ee][Xx][Tt]"
             }
           ]
         }
@@ -216,16 +265,16 @@
         "type": "SEQ",
         "members": [
           {
-            "type": "STRING",
-            "value": "If"
+            "type": "PATTERN",
+            "value": "[Ii][Ff]"
           },
           {
             "type": "SYMBOL",
             "name": "_expression"
           },
           {
-            "type": "STRING",
-            "value": "Then"
+            "type": "PATTERN",
+            "value": "[Tt][Hh][Ee][Nn]"
           },
           {
             "type": "SYMBOL",
@@ -239,19 +288,52 @@
             "type": "CHOICE",
             "members": [
               {
-                "type": "SEQ",
+                "type": "CHOICE",
                 "members": [
                   {
-                    "type": "STRING",
-                    "value": "Else"
+                    "type": "REPEAT",
+                    "content": {
+                      "type": "SEQ",
+                      "members": [
+                        {
+                          "type": "PATTERN",
+                          "value": "[Ee][Ll][Ss][Ee][Ii][Ff]"
+                        },
+                        {
+                          "type": "SYMBOL",
+                          "name": "_expression"
+                        },
+                        {
+                          "type": "PATTERN",
+                          "value": "[Tt][Hh][Ee][Nn]"
+                        },
+                        {
+                          "type": "SYMBOL",
+                          "name": "_whitespace"
+                        },
+                        {
+                          "type": "SYMBOL",
+                          "name": "_inline_statement_block"
+                        }
+                      ]
+                    }
                   },
                   {
-                    "type": "SYMBOL",
-                    "name": "_whitespace"
-                  },
-                  {
-                    "type": "SYMBOL",
-                    "name": "_inline_statement_block"
+                    "type": "SEQ",
+                    "members": [
+                      {
+                        "type": "PATTERN",
+                        "value": "[Ee][Ll][Ss][Ee]"
+                      },
+                      {
+                        "type": "SYMBOL",
+                        "name": "_whitespace"
+                      },
+                      {
+                        "type": "SYMBOL",
+                        "name": "_inline_statement_block"
+                      }
+                    ]
                   }
                 ]
               },
@@ -261,8 +343,8 @@
             ]
           },
           {
-            "type": "STRING",
-            "value": "End If"
+            "type": "PATTERN",
+            "value": "[Ee][Nn][Dd] [Ii][Ff]"
           }
         ]
       }
@@ -274,8 +356,8 @@
         "type": "SEQ",
         "members": [
           {
-            "type": "STRING",
-            "value": "For"
+            "type": "PATTERN",
+            "value": "[Ff][Oo][Rr]"
           },
           {
             "type": "SYMBOL",
@@ -290,8 +372,8 @@
             "name": "_expression"
           },
           {
-            "type": "STRING",
-            "value": "To"
+            "type": "PATTERN",
+            "value": "[Tt][Oo]"
           },
           {
             "type": "SYMBOL",
@@ -304,8 +386,8 @@
                 "type": "SEQ",
                 "members": [
                   {
-                    "type": "STRING",
-                    "value": "Step"
+                    "type": "PATTERN",
+                    "value": "[Ss][Tt][Ee][Pp]"
                   },
                   {
                     "type": "SYMBOL",
@@ -327,8 +409,8 @@
             "name": "_inline_statement_block"
           },
           {
-            "type": "STRING",
-            "value": "Next"
+            "type": "PATTERN",
+            "value": "[Nn][Ee][Xx][Tt]"
           },
           {
             "type": "SYMBOL",
@@ -344,8 +426,8 @@
         "type": "SEQ",
         "members": [
           {
-            "type": "STRING",
-            "value": "While"
+            "type": "PATTERN",
+            "value": "[Ww][Hh][Ii][Ll][Ee]"
           },
           {
             "type": "SYMBOL",
@@ -360,8 +442,8 @@
             "name": "_inline_statement_block"
           },
           {
-            "type": "STRING",
-            "value": "Wend"
+            "type": "PATTERN",
+            "value": "[Ww][Ee][Nn][Dd]"
           }
         ]
       }
@@ -373,8 +455,8 @@
         "type": "SEQ",
         "members": [
           {
-            "type": "STRING",
-            "value": "Do"
+            "type": "PATTERN",
+            "value": "[Dd][Oo]"
           },
           {
             "type": "SYMBOL",
@@ -385,19 +467,19 @@
             "name": "_inline_statement_block"
           },
           {
-            "type": "STRING",
-            "value": "Loop"
+            "type": "PATTERN",
+            "value": "[Ll][Oo][Oo][Pp]"
           },
           {
             "type": "CHOICE",
             "members": [
               {
-                "type": "STRING",
-                "value": "While"
+                "type": "PATTERN",
+                "value": "[Ww][Hh][Ii][Ll][Ee]"
               },
               {
-                "type": "STRING",
-                "value": "Until"
+                "type": "PATTERN",
+                "value": "[Uu][Nn][Tt][Ii][Ll]"
               }
             ]
           },
@@ -412,8 +494,8 @@
       "type": "SEQ",
       "members": [
         {
-          "type": "STRING",
-          "value": "Sub"
+          "type": "PATTERN",
+          "value": "[Ss][Uu][Bb]"
         },
         {
           "type": "SYMBOL",
@@ -448,8 +530,8 @@
           "name": "_inline_statement_block"
         },
         {
-          "type": "STRING",
-          "value": "End Sub"
+          "type": "PATTERN",
+          "value": "[Ee][Nn][Dd] [Ss][Uu][Bb]"
         }
       ]
     },
@@ -460,8 +542,8 @@
           "type": "CHOICE",
           "members": [
             {
-              "type": "STRING",
-              "value": "Private"
+              "type": "PATTERN",
+              "value": "[Pp][Rr][Ii][Vv][Aa][Tt][Ee]"
             },
             {
               "type": "BLANK"
@@ -469,8 +551,8 @@
           ]
         },
         {
-          "type": "STRING",
-          "value": "Function"
+          "type": "PATTERN",
+          "value": "[Ff][Uu][Nn][Cc][Tt][Ii][Oo][Nn]"
         },
         {
           "type": "SYMBOL",
@@ -497,18 +579,6 @@
           "value": ")"
         },
         {
-          "type": "CHOICE",
-          "members": [
-            {
-              "type": "SYMBOL",
-              "name": "type_definition"
-            },
-            {
-              "type": "BLANK"
-            }
-          ]
-        },
-        {
           "type": "SYMBOL",
           "name": "_whitespace"
         },
@@ -517,51 +587,34 @@
           "name": "_inline_statement_block"
         },
         {
-          "type": "STRING",
-          "value": "End Function"
+          "type": "PATTERN",
+          "value": "[Ee][Nn][Dd] [Ff][Uu][Nn][Cc][Tt][Ii][Oo][Nn]"
         }
       ]
     },
-    "variable_declaration": {
+    "const_declaration": {
       "type": "SEQ",
       "members": [
         {
-          "type": "STRING",
-          "value": "Dim"
+          "type": "PATTERN",
+          "value": "[Cc][Oo][Nn][Ss][Tt]"
         },
         {
-          "type": "CHOICE",
-          "members": [
-            {
-              "type": "SYMBOL",
-              "name": "_variable_declaration_assignment"
-            },
-            {
-              "type": "SYMBOL",
-              "name": "variable_list"
-            }
-          ]
+          "type": "SYMBOL",
+          "name": "_const_declaration_assignment"
         }
       ]
     },
-    "redim": {
+    "_const_declaration_assignment": {
       "type": "SEQ",
       "members": [
         {
-          "type": "STRING",
-          "value": "ReDim"
+          "type": "SYMBOL",
+          "name": "const_declaration_identifier"
         },
         {
-          "type": "CHOICE",
-          "members": [
-            {
-              "type": "STRING",
-              "value": "Preserve"
-            },
-            {
-              "type": "BLANK"
-            }
-          ]
+          "type": "SYMBOL",
+          "name": "_equal"
         },
         {
           "type": "SYMBOL",
@@ -569,28 +622,50 @@
         }
       ]
     },
-    "_variable_declaration_assignment": {
-      "type": "SEQ",
+    "const_declaration_identifier": {
+      "type": "CHOICE",
       "members": [
         {
           "type": "SYMBOL",
-          "name": "variable_declaration_identifier"
+          "name": "array_identifier"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "new_identifier"
+        }
+      ]
+    },
+    "variable_declaration": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "PATTERN",
+          "value": "[Dd][Ii][Mm]"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "variable_list"
+        }
+      ]
+    },
+    "redim": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "PATTERN",
+          "value": "[Rr][Ee][Dd][Ii][Mm]"
         },
         {
           "type": "CHOICE",
           "members": [
             {
-              "type": "SYMBOL",
-              "name": "type_definition"
+              "type": "PATTERN",
+              "value": "[Pp][Rr][Ee][Ss][Ee][Rr][Vv][Ee]"
             },
             {
               "type": "BLANK"
             }
           ]
-        },
-        {
-          "type": "SYMBOL",
-          "name": "_equal"
         },
         {
           "type": "SYMBOL",
@@ -633,8 +708,8 @@
                   "name": "number"
                 },
                 {
-                  "type": "STRING",
-                  "value": "To"
+                  "type": "PATTERN",
+                  "value": "[Tt][Oo]"
                 },
                 {
                   "type": "SYMBOL",
@@ -650,19 +725,6 @@
         {
           "type": "STRING",
           "value": ")"
-        }
-      ]
-    },
-    "type_definition": {
-      "type": "SEQ",
-      "members": [
-        {
-          "type": "STRING",
-          "value": "As"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "type"
         }
       ]
     },
@@ -688,18 +750,6 @@
               }
             ]
           }
-        },
-        {
-          "type": "CHOICE",
-          "members": [
-            {
-              "type": "SYMBOL",
-              "name": "type_definition"
-            },
-            {
-              "type": "BLANK"
-            }
-          ]
         }
       ]
     },
@@ -707,28 +757,28 @@
       "type": "SEQ",
       "members": [
         {
-          "type": "STRING",
-          "value": "Private"
+          "type": "PATTERN",
+          "value": "[Pp][Rr][Ii][Vv][Aa][Tt][Ee]"
         },
         {
-          "type": "STRING",
-          "value": "Declare"
+          "type": "PATTERN",
+          "value": "[Dd][Ee][Cc][Ll][Aa][Rr][Ee]"
         },
         {
-          "type": "STRING",
-          "value": "PtrSafe"
+          "type": "PATTERN",
+          "value": "[Pp][Tt][Rr][Ss][Aa][Ff][Ee]"
         },
         {
-          "type": "STRING",
-          "value": "Function"
+          "type": "PATTERN",
+          "value": "[Ff][Uu][Nn][Cc][Tt][Ii][Oo][Nn]"
         },
         {
           "type": "SYMBOL",
           "name": "new_identifier"
         },
         {
-          "type": "STRING",
-          "value": "Lib"
+          "type": "PATTERN",
+          "value": "[Ll][Ii][Bb]"
         },
         {
           "type": "SYMBOL",
@@ -741,8 +791,8 @@
               "type": "SEQ",
               "members": [
                 {
-                  "type": "STRING",
-                  "value": "Alias"
+                  "type": "PATTERN",
+                  "value": "[Aa][Ll][Ii][Aa][Ss]"
                 },
                 {
                   "type": "SYMBOL",
@@ -774,10 +824,6 @@
         {
           "type": "STRING",
           "value": ")"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "type_definition"
         }
       ]
     },
@@ -824,18 +870,6 @@
         {
           "type": "SYMBOL",
           "name": "new_identifier"
-        },
-        {
-          "type": "CHOICE",
-          "members": [
-            {
-              "type": "SYMBOL",
-              "name": "type_definition"
-            },
-            {
-              "type": "BLANK"
-            }
-          ]
         }
       ]
     },
@@ -843,20 +877,33 @@
       "type": "CHOICE",
       "members": [
         {
-          "type": "STRING",
-          "value": "ByVal"
+          "type": "PATTERN",
+          "value": "[Bb][Yy][Vv][Aa][Ll]"
         },
         {
-          "type": "STRING",
-          "value": "ByRef"
+          "type": "PATTERN",
+          "value": "[Bb][Yy][Rr][Ee][Ff]"
         },
         {
-          "type": "STRING",
-          "value": "Optional"
+          "type": "PATTERN",
+          "value": "[Oo][Pp][Tt][Ii][Oo][Nn][Aa][Ll]"
         },
         {
-          "type": "STRING",
-          "value": "ParamArray"
+          "type": "PATTERN",
+          "value": "[Pp][Aa][Rr][Aa][Mm][Aa][Rr][Rr][Aa][Yy]"
+        }
+      ]
+    },
+    "visibility": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "PATTERN",
+          "value": "[Pp][Rr][Ii][Vv][Aa][Tt][Ee]"
+        },
+        {
+          "type": "PATTERN",
+          "value": "[Pp][Uu][Bb][Ll][Ii][Cc]"
         }
       ]
     },
@@ -877,72 +924,72 @@
       "type": "CHOICE",
       "members": [
         {
-          "type": "STRING",
-          "value": "Any"
+          "type": "PATTERN",
+          "value": "[Aa][Nn][Yy]"
         },
         {
-          "type": "STRING",
-          "value": "Boolean"
+          "type": "PATTERN",
+          "value": "[Bb][Oo][Oo][Ll][Ee][Aa][Nn]"
         },
         {
-          "type": "STRING",
-          "value": "Byte"
+          "type": "PATTERN",
+          "value": "[Bb][Yy][Tt][Ee]"
         },
         {
-          "type": "STRING",
-          "value": "Collection"
+          "type": "PATTERN",
+          "value": "[Cc][Oo][Ll][Ll][Ee][Cc][Tt][Ii][Oo][Nn]"
         },
         {
-          "type": "STRING",
-          "value": "Currency"
+          "type": "PATTERN",
+          "value": "[Cc][Uu][Rr][Rr][Ee][Nn][Cc][Yy]"
         },
         {
-          "type": "STRING",
-          "value": "Date"
+          "type": "PATTERN",
+          "value": "[Dd][Aa][Tt][Ee]"
         },
         {
-          "type": "STRING",
-          "value": "Decimal"
+          "type": "PATTERN",
+          "value": "[Dd][Ee][Cc][Ii][Mm][Aa][Ll]"
         },
         {
-          "type": "STRING",
-          "value": "Dictionary"
+          "type": "PATTERN",
+          "value": "[Dd][Ii][Cc][Tt][Ii][Oo][Nn][Aa][Rr][Yy]"
         },
         {
-          "type": "STRING",
-          "value": "Double"
+          "type": "PATTERN",
+          "value": "[Dd][Oo][Uu][Bb][Ll][Ee]"
         },
         {
-          "type": "STRING",
-          "value": "Integer"
+          "type": "PATTERN",
+          "value": "[Ii][Nn][Tt][Ee][Gg][Ee][Rr]"
         },
         {
-          "type": "STRING",
-          "value": "Long"
+          "type": "PATTERN",
+          "value": "[Ll][Oo][Nn][Gg]"
         },
         {
-          "type": "STRING",
-          "value": "LongLong"
+          "type": "PATTERN",
+          "value": "[Ll][Oo][Nn][Gg][Ll][Oo][Nn][Gg]"
         },
         {
-          "type": "STRING",
-          "value": "LongPtr"
+          "type": "PATTERN",
+          "value": "[Ll][Oo][Nn][Gg][Pp][Tt][Rr]"
         },
         {
-          "type": "STRING",
-          "value": "Object"
+          "type": "PATTERN",
+          "value": "[Oo][Bb][Jj][Ee][Cc][Tt]"
         },
         {
-          "type": "STRING",
-          "value": "Single"
+          "type": "PATTERN",
+          "value": "[Ss][Ii][Nn][Gg][Ll][Ee]"
         },
         {
-          "type": "STRING",
-          "value": "String"
+          "type": "PATTERN",
+          "value": "[Ss][Tt][Rr][Ii][Nn][Gg]"
         },
         {
-          "type": "STRING",
-          "value": "Variant"
+          "type": "PATTERN",
+          "value": "[Vv][Aa][Rr][Ii][Aa][Nn][Tt]"
         },
         {
           "type": "SYMBOL",
@@ -1020,8 +1067,8 @@
         "type": "SEQ",
         "members": [
           {
-            "type": "STRING",
-            "value": "New"
+            "type": "PATTERN",
+            "value": "[Nn][Ee][Ww]"
           },
           {
             "type": "CHOICE",
@@ -1205,8 +1252,29 @@
                   "name": "_expression"
                 },
                 {
+                  "type": "PATTERN",
+                  "value": "[Mm][Oo][Dd]"
+                },
+                {
+                  "type": "SYMBOL",
+                  "name": "_expression"
+                }
+              ]
+            }
+          },
+          {
+            "type": "PREC",
+            "value": "exponential",
+            "content": {
+              "type": "SEQ",
+              "members": [
+                {
+                  "type": "SYMBOL",
+                  "name": "_expression"
+                },
+                {
                   "type": "STRING",
-                  "value": "Mod"
+                  "value": "^"
                 },
                 {
                   "type": "SYMBOL",
@@ -1248,7 +1316,7 @@
                 },
                 {
                   "type": "PATTERN",
-                  "value": "[Aa]nd"
+                  "value": "[Aa][Nn][Dd]"
                 },
                 {
                   "type": "SYMBOL",
@@ -1269,7 +1337,7 @@
                 },
                 {
                   "type": "PATTERN",
-                  "value": "[Oo]r"
+                  "value": "[Oo][Rr]"
                 },
                 {
                   "type": "SYMBOL",
@@ -1290,7 +1358,7 @@
                 },
                 {
                   "type": "PATTERN",
-                  "value": "[Xx]or"
+                  "value": "[Xx][Oo][Rr]"
                 },
                 {
                   "type": "SYMBOL",
@@ -1451,8 +1519,8 @@
             "type": "SEQ",
             "members": [
               {
-                "type": "STRING",
-                "value": "Not"
+                "type": "PATTERN",
+                "value": "[Nn][Oo][Tt]"
               },
               {
                 "type": "SYMBOL",
@@ -1473,8 +1541,8 @@
             "type": "CHOICE",
             "members": [
               {
-                "type": "STRING",
-                "value": "Call"
+                "type": "PATTERN",
+                "value": "[Cc][Aa][Ll][Ll]"
               },
               {
                 "type": "BLANK"
@@ -1626,12 +1694,12 @@
       "type": "CHOICE",
       "members": [
         {
-          "type": "STRING",
-          "value": "True"
+          "type": "PATTERN",
+          "value": "[Tt][Rr][Uu][Ee]"
         },
         {
-          "type": "STRING",
-          "value": "False"
+          "type": "PATTERN",
+          "value": "[Ff][Aa][Ll][Ss][Ee]"
         }
       ]
     },
@@ -1696,6 +1764,10 @@
       {
         "type": "STRING",
         "value": "member"
+      },
+      {
+        "type": "STRING",
+        "value": "exponential"
       },
       {
         "type": "STRING",
@@ -1765,10 +1837,6 @@
       }
     ],
     [
-      {
-        "type": "SYMBOL",
-        "name": "_variable_declaration_assignment"
-      },
       {
         "type": "SYMBOL",
         "name": "variable_list"
